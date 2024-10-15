@@ -1,5 +1,5 @@
 import typing as T
-from .utils import TranscriptChunk, transcript_chunks_to_json
+from .utils import TranscriptChunk, transcript_chunks_to_json, get_audio_length
 
 
 class Aligner:
@@ -23,14 +23,27 @@ class Aligner:
         to the specified path
         """
         self._fetch_data()
+        if not self._sanity_check_data():
+            print("It is likely the audio and text provided do not match, skipping.")
+            return None
         results = self._process_alignment()
         out_path = None
         if self.save_folder:
             out_path = self._save_results(results)
         return out_path
 
+    def _get_audio_souce_length(self) -> float:
+        """
+        Returns audio length in seconds
+        """
+        return get_audio_length(self.audio_source)
+
     def _fetch_data(self) -> None:
         """Method to fetch the data needed for alignment. To be implemented by subclasses."""
+        raise NotImplementedError("Subclasses must implement this method.")
+
+    def _sanity_check_data(self) -> bool:
+        """Method to sanity check the audio/text align. To be implemented by subclasses"""
         raise NotImplementedError("Subclasses must implement this method.")
 
     def _process_alignment(self) -> T.List[TranscriptChunk]:

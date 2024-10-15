@@ -4,8 +4,6 @@ import json
 import pandas as pd
 import typing as T
 
-from aeneas.executetask import ExecuteTask
-from aeneas.task import Task
 from datasets import Dataset, Audio
 from youtube_transcript_api import YouTubeTranscriptApi
 
@@ -19,9 +17,13 @@ CSV_FILE = "case_data.csv"
 AUDIO_COLUMN_NAME = "mp3 format link"
 TRANSCRIPT_COLUMN_NAME = "Transcript Link"
 YOUTUBE_COLUMN_NAME = "Oral Hearing Link"
-RAW_DATA_FOLDER = "raw_data/"
-CHUNKED_DATA_FOLDER = "chunked_data/"
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+RAW_DATA_FOLDER = os.path.join(CURRENT_DIR, "raw_data")
+CHUNKED_DATA_FOLDER = os.path.join(CURRENT_DIR, "chunked_data")
 CHUNK_LENGTH = 30  # [s]
+
+PUSH_TO_HUGGING_FACE = True
+HUGGING_FACE_REPO = "divi212/india-supreme-court-audio"
 
 
 def _validate_csv_columns(csv_file: str) -> bool:
@@ -47,8 +49,6 @@ def _validate_metadata(row: T.Dict) -> bool:
     """
     Makes sure a row in a csv does not have inconsistencies and has valid data
     """
-    # TODO(divyanshu): add consistency checks between the mp3 and the youtube link incase the data
-    # processing step in generating the csv messed that up.
     try:
         YouTubeTranscriptApi.get_transcript(
             extract_youtube_video_id(row[YOUTUBE_COLUMN_NAME])
@@ -97,28 +97,37 @@ def main():
                 base_folder, row[AUDIO_COLUMN_NAME], row[TRANSCRIPT_COLUMN_NAME]
             )
             audio_path, transcript_path = data_loader.load_data()
+            if not audio_path or not transcript_path:
+                print(
+                    "Audio or transcript could not be loaded. Moving on to the next row."
+                )
+                continue
             # convert pdf to text
             print("Step 2 / 4: Extracting Text from the pdf transcript")
             pdf_processor = PDFTranscriptProcessor(transcript_path)
-            transcript_text = pdf_processor.process()
+            transcript_text_path = pdf_processor.process()
             # use youtube caption aligner
             print(
                 "Step 3 / 4: Adding timestamps to transcript through forced alignment."
             )
             youtube_aligner = YouTubeCaptionAligner(
-                row[YOUTUBE_COLUMN_NAME], transcript_text, base_folder
+                audio_path, transcript_text_path, row[YOUTUBE_COLUMN_NAME], base_folder
             )
             aligned_transcript_path = youtube_aligner.process()
             # chunk data
-            print("Step 4 / 4: Chunking data")
-            chunked_data_folder = os.path.join(CHUNKED_DATA_FOLDER, f"{index}")
-            chunker = Chunker(
-                aligned_transcript_path, audio_path, chunked_data_folder, CHUNK_LENGTH
-            )
-            row_metadata = chunker.process()
-            chunked_metadata = pd.concat(
-                [chunked_metadata, pd.DataFrame(row_metadata)], ignore_index=True
-            )
+            if aligned_transcript_path:
+                print("Step 4 / 4: Chunking data")
+                chunked_data_folder = os.path.join(CHUNKED_DATA_FOLDER, f"{index}")
+                chunker = Chunker(
+                    aligned_transcript_path,
+                    audio_path,
+                    chunked_data_folder,
+                    CHUNK_LENGTH,
+                )
+                row_metadata = chunker.process()
+                chunked_metadata = pd.concat(
+                    [chunked_metadata, pd.DataFrame(row_metadata)], ignore_index=True
+                )
             print(
                 "----------------------------------------------------------------------------------"
             )
@@ -127,13 +136,15 @@ def main():
         "Done! Writing overall mapping of chunked audio file to transcript and pushing to hugging face"
     )
     chunked_metadata.to_csv(
-        f"{CHUNKED_DATA_FOLDER}chunked_audio_metadata.csv", index=False
+        f"{CHUNKED_DATA_FOLDER}/chunked_audio_metadata.csv", index=False
     )
-    ds = Dataset.from_csv(f"{CHUNKED_DATA_FOLDER}chunked_audio_metadata.csv")
-    shuffled_ds = ds.shuffle(seed=212)
-    train_test_ds = shuffled_ds.train_test_split(test_size=0.1, seed=212)
-    train_test_ds = train_test_ds.cast_column("audio", Audio())
-    train_test_ds.push_to_hub("divi212/india-supreme-court-audio")
+    if PUSH_TO_HUGGING_FACE:
+        print("Pushing data to hugging face")
+        ds = Dataset.from_csv(f"{CHUNKED_DATA_FOLDER}/chunked_audio_metadata.csv")
+        shuffled_ds = ds.shuffle(seed=212)
+        train_test_ds = shuffled_ds.train_test_split(test_size=0.1, seed=212)
+        train_test_ds = train_test_ds.cast_column("audio", Audio())
+        train_test_ds.push_to_hub(HUGGING_FACE_REPO)
 
 
 if __name__ == "__main__":

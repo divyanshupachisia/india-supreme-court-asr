@@ -1,11 +1,15 @@
 import re
+import jiwer
 import json
 import nltk
 import subprocess
 import typing as T
 
 from nltk.corpus import stopwords
+from pydub import AudioSegment
 from dataclasses import dataclass, asdict
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 @dataclass
@@ -64,9 +68,7 @@ def get_default_stop_words() -> set:
 
 
 def extract_youtube_video_id(url: str) -> str:
-    """
-    Given a YouTube url, returns the video ID.
-    """
+    """Given a YouTube url, returns the video ID."""
     # TODO(divyanshu): This regular expression is brittle. Use a library to do this.
     pattern = r"(?:https?://)?(?:www\.)?youtube\.com/(?:watch\?v=|live/)([^&\n?#]+)"
     match = re.search(pattern, url)
@@ -75,7 +77,7 @@ def extract_youtube_video_id(url: str) -> str:
     raise ValueError(f"Invalid YouTube URL: {url}")
 
 
-# NOTE(divyanshu): This was needed because AudioSegment didn't play nice with mp3 files. Also on 
+# NOTE(divyanshu): This was needed because AudioSegment didn't play nice with mp3 files. Also on
 # vscode wave files can be played, so this format is overall easier to work with.
 def mp3_to_wav(input_mp3_path, output_wav_path=None) -> str:
     """
@@ -91,7 +93,6 @@ def mp3_to_wav(input_mp3_path, output_wav_path=None) -> str:
     """
     if output_wav_path is None:
         output_wav_path = input_mp3_path.rsplit(".", 1)[0] + ".wav"
-
     command = [
         "ffmpeg",
         "-y",  # Overwrite output files without asking
@@ -113,3 +114,38 @@ def mp3_to_wav(input_mp3_path, output_wav_path=None) -> str:
         return output_wav_path
     except subprocess.CalledProcessError as e:
         raise Exception(f"ffmpeg error: {e.stderr.decode()}") from e
+
+
+def get_audio_length(audio_file_path: str) -> float:
+    """Returns the length of the audio in seconds"""
+    try:
+        audio = AudioSegment.from_file(audio_file_path)
+        # Convert from ms to s
+        duration_in_seconds = len(audio) / 1000.0
+        return duration_in_seconds
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return 0.0
+
+
+def compute_wer(reference: str, comparison: str) -> float:
+    """Word Error Rate (WER) for two strings."""
+    return jiwer.wer(reference, comparison)
+
+
+def compute_cosine_similarity(reference: str, comparison: str) -> float:
+    """
+    Uses TF-IDF to compute the cosine similarity between two strings. This is meant to signify how
+    similar in meaning the two strings are.
+    """
+    vectorizer = TfidfVectorizer()
+    X = vectorizer.fit_transform([reference, comparison])
+    return cosine_similarity(X[0], X[1])
+
+
+def find_sublist_in_list(sublist: T.List, lst: T.List):
+    """Finds sublist in list."""
+    for i in range(len(lst) - len(sublist) + 1):
+        if lst[i : i + len(sublist)] == sublist:
+            return i
+    return -1

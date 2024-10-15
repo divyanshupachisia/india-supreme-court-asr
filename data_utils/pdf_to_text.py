@@ -53,8 +53,7 @@ class PDFTranscriptProcessor:
         text = self._remove_line_numbers(text)
         text = text.replace("Transcribed by TERES", "")
         text = self._remove_timestamps(text)
-        text = text.replace("END OF THIS PROCEEDING", "")
-        text = text.replace("END OF DAY * PROCEEDINGS", "")
+        text = self._remove_end_proceedings(text)
         if self.remove_speaker_names:
             text = self._remove_speaker_names(text)
         return text
