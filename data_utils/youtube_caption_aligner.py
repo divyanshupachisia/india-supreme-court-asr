@@ -255,7 +255,10 @@ class YouTubeCaptionAligner(Aligner):
                 # TODO(divyanshu): perhaps make this a setting to the aligner
                 if len(matches) > 2:
                     continue
-                start_time = cur_caption.start
+                if len(aligned_transcripts) > 0:
+                    start_time = aligned_transcripts[-1].end
+                else:
+                    start_time = self._youtube_caption[0].start
                 end_time = next_caption.start
                 closest_match_index = min(matches, key=lambda x: abs(x - center_index))
                 aligned_transcripts.append(
