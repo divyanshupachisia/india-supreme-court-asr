@@ -101,9 +101,17 @@ script to push to the repo.
 ## Finetuning Model
 
 The notebook `whisper_finetuning.ipynb` is included which pulls the data from hugging face and 
-finetunes the Whisper-tiny model.
+finetunes the Whisper models.
 
 In this notebook, there is an option to download the data directly from hugging face and optionally
 storing it to disk. 
 This notebook has been verified on a colab environment.
 
+Two models were fine tuned using this notebook - whisper tiny and whisper small. The finetuned
+models have been pushed to hugging face.
+Whisper Tiny: https://huggingface.co/divi212/whisper-tiny-india-supreme-court-asr
+Whisper Small: https://huggingface.co/divi212/whisper-small-india-supreme-court-asr
+
+Additionally, the base model and fine tuned model were both evaluated on a completely new court
+hearing (7th entry in `case_data.csv`) which has a private youtube video and so could not be
+processed by the current data pipeline.

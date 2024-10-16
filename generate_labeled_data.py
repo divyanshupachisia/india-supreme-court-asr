@@ -83,7 +83,8 @@ def main():
             )
             print(f"Processing row {index}")
             base_folder = os.path.join(RAW_DATA_FOLDER, f"{index}")
-            # validate and write metadata to a json file
+            # validate meta data
+            # TODO(divyanshu): write metadata to a json file so it can be used
             valid_row = _validate_metadata(row)
             if not valid_row:
                 print(
