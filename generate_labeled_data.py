@@ -1,6 +1,5 @@
 import csv
 import os
-import json
 import pandas as pd
 import typing as T
 
@@ -22,7 +21,7 @@ RAW_DATA_FOLDER = os.path.join(CURRENT_DIR, "raw_data")
 CHUNKED_DATA_FOLDER = os.path.join(CURRENT_DIR, "chunked_data")
 CHUNK_LENGTH = 30  # [s]
 
-PUSH_TO_HUGGING_FACE = True
+PUSH_TO_HUGGING_FACE = False
 HUGGING_FACE_REPO = "divi212/india-supreme-court-audio"
 
 
@@ -132,9 +131,7 @@ def main():
                 "----------------------------------------------------------------------------------"
             )
 
-    print(
-        "Done! Writing overall mapping of chunked audio file to transcript and pushing to hugging face"
-    )
+    print("Done! Writing overall mapping of chunked audio file to transcript")
     chunked_metadata.to_csv(
         f"{CHUNKED_DATA_FOLDER}/chunked_audio_metadata.csv", index=False
     )

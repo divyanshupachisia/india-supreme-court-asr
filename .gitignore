@@ -3,3 +3,4 @@ raw_data/
 chunked_data/
 scratch.ipynb
 data_utils/__pycache/*
+scratch.py
