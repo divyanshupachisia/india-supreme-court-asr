@@ -15,8 +15,12 @@ It is recommended to set up a virtual environment and install the dependencies.
 ```bash
 # Create a virtual environment named 'venv'
 python3 -m venv venv
+```
+```bash
 # Activate virtual environment
 source venv/bin/activate
+```
+```bash
 # install dependencies
 pip install -r requirements.txt
 ```
@@ -46,7 +50,8 @@ Additionally, the "Shuffle" button randomly chooses an audio chunk.
 
 ### Details
 
-This will create two folders, `raw_data/` and `chunked_data/`.
+The data generation process creates two folders, `raw_data/` and `chunked_data/` from the 
+inputted csv which contains rows of audio and transcript links.
 
 In the `raw_data/` folder, you will see the a folder for every row in the csv with the files 
 corresponding to each step in the process: 
