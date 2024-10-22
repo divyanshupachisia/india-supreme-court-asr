@@ -16,14 +16,6 @@ It is recommended to set up a virtual environment and install the dependencies.
 # Create a virtual environment named 'asr'
 python3 -m venv asr
 ```
-
-Then, clone the repository, activate the virtual environment, and install dependencies.
-
-```bash
-# Clone the repository and enter the directory
-git clone https://github.com/divyanshupachisia/india-supreme-court-asr.git
-cd india-supreme-court-asr
-```
 ```bash
 # Activate virtual environment
 source asr/bin/activate
