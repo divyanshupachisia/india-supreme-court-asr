@@ -36,7 +36,7 @@ pip install -r requirements.txt
 ## Data Generation
 
 To run the data generation script on the `case_data.csv` provided from the root directory of this
-repository, which runs through the steps detailed in [Details](#data-generation/details)
+repository, which runs through the steps detailed in the Details section.
 
 ```bash
 python generate_labeled_data.py
