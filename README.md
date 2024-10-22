@@ -10,18 +10,21 @@ this dataset to finetune Whisper.
 
 ## Setup
 
-It is recommended to set up a virtual environment and install the dependencies. 
+Clone the repository and then enter the directory
+```bash
+git clone https://github.com/divyanshupachisia/india-supreme-court-asr.git
+cd india-supreme-court-asr
+```
+
+It is recommended to set up a virtual environment, activate it and install the dependencies. 
 
 ```bash
-# Create a virtual environment named 'asr'
 python3 -m venv asr
 ```
 ```bash
-# Activate virtual environment
 source asr/bin/activate
 ```
 ```bash
-# install dependencies
 pip install -r requirements.txt
 ```
 

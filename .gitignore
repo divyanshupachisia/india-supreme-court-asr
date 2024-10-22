@@ -4,3 +4,5 @@ chunked_data/
 scratch.ipynb
 data_utils/__pycache__/*
 scratch.py
+# virtual environment
+asr/
