@@ -175,7 +175,6 @@ class YouTubeCaptionAligner(Aligner):
                     continue
                 match = find_sublist_in_list(caption_text_list, transcript_text_list)
                 if match != -1:
-                    print(f"Found {caption_text_list} in transcript at index {match}")
                     transcript_index = match
                     youtube_caption_index = i
                     alignment_found = True
